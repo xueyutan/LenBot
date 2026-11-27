@@ -1,0 +1,886 @@
+- file: A/上吊.gif
+  description: 「上吊」表情
+  emotions:
+  - 绝望
+  - 摆烂
+  - 想死
+  - 累
+  tags:
+  - 上吊
+  - 绳子
+- file: A/上工.gif
+  description: 「上工」表情
+  emotions:
+  - 打工
+  - 上班
+  - 疲惫
+  tags:
+  - 上工
+  - 搬砖
+- file: A/举牌.gif
+  description: 「举牌」表情
+  emotions:
+  - 举牌
+  - 提示
+  - 宣告
+  tags:
+  - 举牌
+  - 牌子
+- file: A/口水.gif
+  description: 「口水」表情
+  emotions:
+  - 馋
+  - 色
+  - 想吃
+  tags:
+  - 口水
+  - 馋
+- file: A/启动.gif
+  description: 「启动」表情
+  emotions: &id001
+  - 蓄力
+  - 打气
+  - 准备开始
+  tags: &id002
+  - 启动
+  - 加油
+- file: A/哼哼.gif
+  description: 「哼哼」表情
+  emotions:
+  - 得意
+  - 傲娇
+  - 不服
+  tags:
+  - 哼哼
+  - 得意
+- file: A/喜欢.gif
+  description: 「喜欢」表情
+  emotions:
+  - 喜欢
+  - 心动
+  - 爱
+  tags:
+  - 喜欢
+  - 爱心
+- file: A/喝茶.gif
+  description: 「喝茶」表情
+  emotions:
+  - 看戏
+  - 淡定
+  - 吃瓜
+  tags:
+  - 喝茶
+  - 围观
+- file: A/对手指.gif
+  description: 「对手指」表情
+  emotions:
+  - 害羞
+  - 委屈
+  - 试探
+  tags:
+  - 对手指
+  - 害羞
+- file: A/想要.gif
+  description: 「想要」表情
+  emotions:
+  - 想要
+  - 期待
+  - 伸手
+  tags:
+  - 伸手
+  - 想要
+- file: A/慌.gif
+  description: 「慌」表情
+  emotions:
+  - 慌
+  - 紧张
+  - 害怕
+  tags:
+  - 慌
+  - 冷汗
+- file: A/戳戳.gif
+  description: 「戳戳」表情
+  emotions:
+  - 戳
+  - 试探
+  - 催
+  tags:
+  - 戳
+  - 手指
+- file: A/拉泪.gif
+  description: 「拉泪」表情
+  emotions:
+  - 哭
+  - 委屈
+  - 难过
+  tags:
+  - 眼泪
+  - 哭
+- file: A/灵光.gif
+  description: 「灵光」表情
+  emotions:
+  - 灵光一闪
+  - 想到办法
+  - 得意
+  tags:
+  - 灵光
+  - 灯泡
+- file: A/点赞.gif
+  description: 「点赞」表情
+  emotions:
+  - 赞同
+  - 表扬
+  - 点赞
+  tags:
+  - 点赞
+  - 大拇指
+- file: A/生气.gif
+  description: 「生气」表情
+  emotions:
+  - 生气
+  - 愤怒
+  - 不满
+  tags:
+  - 生气
+  - 火
+- file: A/疑惑.gif
+  description: 「疑惑」表情
+  emotions:
+  - 疑惑
+  - 没看懂
+  - 问号
+  tags:
+  - 疑问
+  - 问号
+- file: A/端详.gif
+  description: 「端详」表情
+  emotions:
+  - 端详
+  - 打量
+  - 观察
+  tags:
+  - 端详
+  - 观察
+- file: A/震惊.gif
+  description: 「震惊」表情
+  emotions:
+  - 震惊
+  - 惊讶
+  - 不敢相信
+  tags:
+  - 震惊
+  - 惊讶
+- file: A/鼓掌.gif
+  description: 「鼓掌」表情
+  emotions:
+  - 鼓掌
+  - 捧场
+  - 夸奖
+  tags:
+  - 鼓掌
+  - 拍手
+- file: dlc1/上车.gif
+  description: 「上车」表情
+  emotions:
+  - 上车
+  - 出发
+  - 一起
+  tags:
+  - 上车
+  - 车
+- file: dlc1/刀子.gif
+  description: 「刀子」表情
+  emotions:
+  - 威胁
+  - 凶
+  - 捅刀
+  tags:
+  - 刀
+  - 威胁
+- file: dlc1/可恶.gif
+  description: 「可恶」表情
+  emotions:
+  - 可恶
+  - 不甘
+  - 恼火
+  tags:
+  - 可恶
+  - 咬牙
+- file: dlc1/可爱.gif
+  description: 「可爱」表情
+  emotions:
+  - 可爱
+  - 卖萌
+  - 撒娇
+  tags:
+  - 可爱
+  - 卖萌
+- file: dlc1/唱歌.gif
+  description: 「唱歌」表情
+  emotions:
+  - 唱歌
+  - 开心
+  - 嗨
+  tags:
+  - 唱歌
+  - 音符
+- file: dlc1/大叫.gif
+  description: 「大叫」表情
+  emotions:
+  - 大叫
+  - 喊
+  - 激动
+  tags:
+  - 大叫
+  - 喊
+- file: dlc1/大哭.gif
+  description: 「大哭」表情
+  emotions:
+  - 大哭
+  - 伤心
+  - 崩溃
+  tags:
+  - 哭
+  - 眼泪
+- file: dlc1/富了.gif
+  description: 「富了」表情
+  emotions:
+  - 有钱
+  - 发财
+  - 得意
+  tags:
+  - 钱
+  - 发财
+- file: dlc1/手帕.gif
+  description: 「手帕」表情
+  emotions:
+  - 擦泪
+  - 心酸
+  - 感动
+  tags:
+  - 手帕
+  - 眼泪
+- file: dlc1/投降.gif
+  description: 「投降」表情
+  emotions:
+  - 投降
+  - 认输
+  - 服了
+  tags:
+  - 投降
+  - 白旗
+- file: dlc1/拿来.gif
+  description: 「拿来」表情
+  emotions:
+  - 拿来
+  - 伸手要
+  - 索取
+  tags:
+  - 拿来
+  - 手
+- file: dlc1/探头.gif
+  description: 「探头」表情
+  emotions:
+  - 探头
+  - 偷看
+  - 好奇
+  tags:
+  - 探头
+  - 看
+- file: dlc1/摸头.gif
+  description: 「摸头」表情
+  emotions:
+  - 摸头
+  - 安慰
+  - 宠溺
+  tags:
+  - 摸头
+  - 安慰
+- file: dlc1/玩手机.gif
+  description: 「玩手机」表情
+  emotions:
+  - 玩手机
+  - 摸鱼
+  - 敷衍
+  tags:
+  - 手机
+  - 摸鱼
+- file: dlc1/看报.gif
+  description: 「看报」表情
+  emotions:
+  - 看报
+  - 吃瓜
+  - 看戏
+  tags:
+  - 看报
+  - 报纸
+- file: dlc1/睡了.gif
+  description: 「睡了」表情
+  emotions:
+  - 困
+  - 睡了
+  - 晚安
+  tags:
+  - 睡觉
+  - 困
+- file: dlc1/破防.gif
+  description: 「破防」表情
+  emotions:
+  - 破防
+  - 崩溃
+  - 扛不住
+  tags:
+  - 破防
+  - 崩溃
+- file: dlc1/穷了.gif
+  description: 「穷了」表情
+  emotions:
+  - 穷
+  - 没钱
+  - 吃土
+  tags:
+  - 穷
+  - 钱包
+- file: dlc1/自己画画.gif
+  description: 「自己画画」表情
+  emotions:
+  - 画画
+  - 自娱自乐
+  - 忙
+  tags:
+  - 画画
+  - 画笔
+- file: dlc1/贴脸.gif
+  description: 「贴脸」表情
+  emotions:
+  - 贴脸
+  - 凑近
+  - 亲密
+  tags:
+  - 贴脸
+  - 靠近
+- file: dlc2/biubiu.gif
+  description: 「biubiu」表情
+  emotions:
+  - biubiu
+  - 发射
+  - 调皮
+  tags:
+  - biubiu
+  - 枪
+- file: dlc2/中二.gif
+  description: 「中二」表情
+  emotions:
+  - 中二
+  - 耍帅
+  - 装
+  tags:
+  - 中二
+  - 帅气
+- file: dlc2/变态！.gif
+  description: 「变态！」表情
+  emotions:
+  - 变态
+  - 嫌弃
+  - 报警
+  tags:
+  - 变态
+  - 嫌弃
+- file: dlc2/呸.gif
+  description: 「呸」表情
+  emotions:
+  - 呸
+  - 嫌弃
+  - 鄙视
+  tags:
+  - 呸
+  - 嫌弃
+- file: dlc2/哈气.gif
+  description: 「哈气」表情
+  emotions:
+  - 哈气
+  - 生气
+  - 威胁
+  tags:
+  - 哈气
+  - 生气
+- file: dlc2/哦内盖.gif
+  description: 「哦内盖」表情
+  emotions:
+  - 求你了
+  - 拜托
+  - 撒娇
+  tags:
+  - 拜托
+  - 请求
+- file: dlc2/唐笑.gif
+  description: 「唐笑」表情
+  emotions:
+  - 傻笑
+  - 憨
+  - 乐
+  tags:
+  - 傻笑
+  - 笑
+- file: dlc2/喂奶.gif
+  description: 「喂奶」表情
+  emotions:
+  - 喂奶
+  - 照顾
+  - 投喂
+  tags:
+  - 奶瓶
+  - 照顾
+- file: dlc2/喵喵.gif
+  description: 「喵喵」表情
+  emotions:
+  - 喵
+  - 卖萌
+  - 撒娇
+  tags:
+  - 喵
+  - 猫
+- file: dlc2/怎么.gif
+  description: 「怎么」表情
+  emotions:
+  - 怎么
+  - 疑问
+  - 不解
+  tags:
+  - 疑问
+  - 怎么回事
+- file: dlc2/我打.gif
+  description: 「我打」表情
+  emotions:
+  - 我打
+  - 出手
+  - 威胁
+  tags:
+  - 打
+  - 拳头
+- file: dlc2/我有一计.gif
+  description: 「我有一计」表情
+  emotions:
+  - 有办法
+  - 出主意
+  - 得意
+  tags:
+  - 计策
+  - 主意
+- file: dlc2/拍照.gif
+  description: 「拍照」表情
+  emotions:
+  - 拍照
+  - 记录
+  - 围观
+  tags:
+  - 拍照
+  - 相机
+- file: dlc2/挺好.gif
+  description: 「挺好」表情
+  emotions:
+  - 还行
+  - 挺好
+  - 敷衍
+  tags:
+  - 挺好
+  - 点头
+- file: dlc2/没收住.gif
+  description: 「没收住」表情
+  emotions:
+  - 没收住
+  - 失控
+  - 尴尬
+  tags:
+  - 失控
+  - 尴尬
+- file: dlc2/爬.gif
+  description: 「爬」表情
+  emotions:
+  - 爬
+  - 滚开
+  - 嫌弃
+  tags:
+  - 爬
+  - 嫌弃
+- file: dlc2/窝囊.gif
+  description: 「窝囊」表情
+  emotions:
+  - 窝囊
+  - 委屈
+  - 没出息
+  tags:
+  - 窝囊
+  - 委屈
+- file: dlc2/自信.gif
+  description: 「自信」表情
+  emotions:
+  - 自信
+  - 得意
+  - 稳
+  tags:
+  - 自信
+  - 得意
+- file: dlc2/被砸.gif
+  description: 「被砸」表情
+  emotions:
+  - 被砸
+  - 倒霉
+  - 疼
+  tags:
+  - 被砸
+  - 倒霉
+- file: dlc2/难道.gif
+  description: 「难道」表情
+  emotions:
+  - 难道
+  - 反问
+  - 怀疑
+  tags:
+  - 疑问
+  - 反问
+- file: 转B】GA0976-刘昴星/yes.gif
+  description: 「yes」表情
+  emotions:
+  - 'yes'
+  - 赞同
+  - 成功
+  tags:
+  - 'yes'
+  - 赞同
+- file: 转B】GA0976-刘昴星/中指.gif
+  description: 「中指」表情
+  emotions:
+  - 竖中指
+  - 鄙视
+  - 挑衅
+  tags:
+  - 中指
+  - 鄙视
+- file: 转B】GA0976-刘昴星/吃薯片.gif
+  description: 「吃薯片」表情
+  emotions:
+  - 吃薯片
+  - 看戏
+  - 悠闲
+  tags:
+  - 薯片
+  - 吃瓜
+- file: 转B】GA0976-刘昴星/吐舌.gif
+  description: 「吐舌」表情
+  emotions: &id003
+  - 吐舌
+  - 调皮
+  - 略
+  tags: &id004
+  - 吐舌
+  - 调皮
+- file: 转B】GA0976-刘昴星/启动.gif
+  description: 「启动」表情
+  emotions: *id001
+  tags: *id002
+- file: 转B】GA0976-刘昴星/噗呲.gif
+  description: 「噗呲」表情
+  emotions:
+  - 笑出声
+  - 憋笑
+  - 乐
+  tags:
+  - 笑
+  - 噗呲
+- file: 转B】GA0976-刘昴星/害羞.gif
+  description: 「害羞」表情
+  emotions:
+  - 害羞
+  - 脸红
+  - 不好意思
+  tags:
+  - 害羞
+  - 脸红
+- file: 转B】GA0976-刘昴星/思考.gif
+  description: 「思考」表情
+  emotions: &id005
+  - 思考
+  - 沉吟
+  - 琢磨
+  tags: &id006
+  - 思考
+  - 想
+- file: 转B】GA0976-刘昴星/我擦.gif
+  description: 「我擦」表情
+  emotions:
+  - 我擦
+  - 惊讶
+  - 爆粗
+  tags:
+  - 惊讶
+  - 我擦
+- file: 转B】GA0976-刘昴星/扣脸.gif
+  description: 「扣脸」表情
+  emotions:
+  - 抠脸
+  - 无聊
+  - 尴尬
+  tags:
+  - 抠脸
+  - 尴尬
+- file: 转B】GA0976-刘昴星/扶墙.gif
+  description: 「扶墙」表情
+  emotions:
+  - 扶墙
+  - 撑不住
+  - 累
+  tags:
+  - 扶墙
+  - 累
+- file: 转B】GA0976-刘昴星/抱抱.gif
+  description: 「抱抱」表情
+  emotions:
+  - 抱抱
+  - 安慰
+  - 亲近
+  tags:
+  - 抱抱
+  - 拥抱
+- file: 转B】GA0976-刘昴星/捏脸.gif
+  description: 「捏脸」表情
+  emotions:
+  - 捏脸
+  - 亲昵
+  - 调戏
+  tags:
+  - 捏脸
+  - 亲昵
+- file: 转B】GA0976-刘昴星/捏鼻.gif
+  description: 「捏鼻」表情
+  emotions:
+  - 捏鼻
+  - 嫌弃
+  - 臭
+  tags:
+  - 捏鼻
+  - 嫌弃
+- file: 转B】GA0976-刘昴星/摇奶茶.gif
+  description: 「摇奶茶」表情
+  emotions:
+  - 摇奶茶
+  - 悠闲
+  - 喝
+  tags:
+  - 奶茶
+  - 悠闲
+- file: 转B】GA0976-刘昴星/无语.gif
+  description: 「无语」表情
+  emotions:
+  - 无语
+  - 无奈
+  - 懒得说
+  tags:
+  - 无语
+  - 汗
+- file: 转B】GA0976-刘昴星/比x.gif
+  description: 「比x」表情
+  emotions:
+  - 比心
+  - 喜欢
+  - 示好
+  tags:
+  - 比心
+  - 爱心
+- file: 转B】GA0976-刘昴星/浇水.gif
+  description: 「浇水」表情
+  emotions:
+  - 浇水
+  - 浇花
+  - 摆弄
+  tags:
+  - 浇水
+  - 花
+- file: 转B】GA0976-刘昴星/纸箱.gif
+  description: 「纸箱」表情
+  emotions:
+  - 躲纸箱
+  - 自闭
+  - 躲
+  tags:
+  - 纸箱
+  - 躲
+- file: 转B】GA0976-刘昴星/阴险.gif
+  description: 「阴险」表情
+  emotions:
+  - 阴险
+  - 坏笑
+  - 算计
+  tags:
+  - 阴险
+  - 坏笑
+- file: 转C】GA0976-刘昴星/你小子.gif
+  description: 「你小子」表情
+  emotions:
+  - 你小子
+  - 调侃
+  - 指人
+  tags:
+  - 指
+  - 调侃
+- file: 转C】GA0976-刘昴星/冷脸萌.gif
+  description: 「冷脸萌」表情
+  emotions:
+  - 冷脸
+  - 傲娇
+  - 面无表情
+  tags:
+  - 冷脸
+  - 傲娇
+- file: 转C】GA0976-刘昴星/击毙.gif
+  description: 「击毙」表情
+  emotions:
+  - 击毙
+  - 开枪
+  - 凶
+  tags:
+  - 枪
+  - 击毙
+- file: 转C】GA0976-刘昴星/剪刀手.gif
+  description: 「剪刀手」表情
+  emotions:
+  - 剪刀手
+  - 耶
+  - 开心
+  tags:
+  - 剪刀手
+  - 耶
+- file: 转C】GA0976-刘昴星/动脑筋.gif
+  description: 「动脑筋」表情
+  emotions:
+  - 动脑筋
+  - 思考
+  - 想办法
+  tags:
+  - 思考
+  - 脑筋
+- file: 转C】GA0976-刘昴星/吃饼.gif
+  description: 「吃饼」表情
+  emotions:
+  - 吃饼
+  - 看戏
+  - 悠闲
+  tags:
+  - 饼
+  - 吃
+- file: 转C】GA0976-刘昴星/吐舌.gif
+  description: 「吐舌」表情
+  emotions: *id003
+  tags: *id004
+- file: 转C】GA0976-刘昴星/启动C.gif
+  description: 「启动C」表情
+  emotions:
+  - 蓄力
+  - 启动
+  - 打气
+  tags:
+  - 启动
+  - 加油
+- file: 转C】GA0976-刘昴星/吸氧.gif
+  description: 「吸氧」表情
+  emotions:
+  - 吸氧
+  - 缺氧
+  - 撑不住
+  tags:
+  - 吸氧
+  - 累
+- file: 转C】GA0976-刘昴星/哭哭.gif
+  description: 「哭哭」表情
+  emotions:
+  - 哭
+  - 委屈
+  - 难过
+  tags:
+  - 哭
+  - 眼泪
+- file: 转C】GA0976-刘昴星/喷水.gif
+  description: 「喷水」表情
+  emotions:
+  - 喷水
+  - 笑喷
+  - 惊讶
+  tags:
+  - 喷水
+  - 笑
+- file: 转C】GA0976-刘昴星/差评.gif
+  description: 「差评」表情
+  emotions:
+  - 差评
+  - 不满
+  - 吐槽
+  tags:
+  - 差评
+  - 不满
+- file: 转C】GA0976-刘昴星/思考.gif
+  description: 「思考」表情
+  emotions: *id005
+  tags: *id006
+- file: 转C】GA0976-刘昴星/愣.gif
+  description: 「愣」表情
+  emotions:
+  - 愣住
+  - 呆
+  - 没反应
+  tags:
+  - 愣
+  - 呆
+- file: 转C】GA0976-刘昴星/手机.gif
+  description: 「手机」表情
+  emotions:
+  - 看手机
+  - 摸鱼
+  - 敷衍
+  tags:
+  - 手机
+  - 摸鱼
+- file: 转C】GA0976-刘昴星/沉思.gif
+  description: 「沉思」表情
+  emotions:
+  - 沉思
+  - 认真
+  - 想事
+  tags:
+  - 沉思
+  - 思考
+- file: 转C】GA0976-刘昴星/玫瑰.gif
+  description: 「玫瑰」表情
+  emotions:
+  - 送玫瑰
+  - 示爱
+  - 浪漫
+  tags:
+  - 玫瑰
+  - 爱
+- file: 转C】GA0976-刘昴星/被戳.gif
+  description: 「被戳」表情
+  emotions:
+  - 被戳中
+  - 中枪
+  - 扎心
+  tags:
+  - 戳
+  - 扎心
+- file: 转C】GA0976-刘昴星/记仇.gif
+  description: 「记仇」表情
+  emotions:
+  - 记仇
+  - 记住你
+  - 小本本
+  tags:
+  - 记仇
+  - 报仇
+- file: 转C】GA0976-刘昴星/赌气.gif
+  description: 「赌气」表情
+  emotions:
+  - 赌气
+  - 生气
+  - 不理你
+  tags:
+  - 赌气
+  - 生气

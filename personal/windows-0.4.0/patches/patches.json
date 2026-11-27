@@ -1,0 +1,290 @@
+[
+  {
+    "id": "05-run-seed-companion",
+    "path": "run.ps1",
+    "marker": "[local patch] Keep the built-in \"companion\"",
+    "old": "if (Test-Path $Current) { $Version = (Get-Content -Raw -Encoding UTF8 $Current | ConvertFrom-Json).version }\n$Release = Join-Path $PSScriptRoot \"releases\\$Version\"\n& (Join-Path $Release 'python\\python.exe') -X utf8 -m len_bot.next.launcher $PSScriptRoot\nexit $LASTEXITCODE\n",
+    "new": "if (Test-Path $Current) { $Version = (Get-Content -Raw -Encoding UTF8 $Current | ConvertFrom-Json).version }\n$Release = Join-Path $PSScriptRoot \"releases\\$Version\"\n\n# [local patch] Keep the built-in \"companion\" (Xiao Ran) role in the role library for\n# instances that finished the wizard with a custom persona. Runs only after\n# first setup (root config exists) and never overwrites an existing role, so\n# hand-edited versions are preserved. This file lives outside releases/, so it\n# survives in-panel upgrades (unlike the setup.py patch).\ntry {\n  $Instance = Join-Path $PSScriptRoot 'instance'\n  $RoleTarget = Join-Path $Instance 'personas\\companion'\n  $RoleSource = Join-Path $Release 'python\\Lib\\site-packages\\len_bot\\default_personas\\companion'\n  if ((Test-Path (Join-Path $Instance 'lenbot.config.json')) -and\n      -not (Test-Path $RoleTarget) -and (Test-Path $RoleSource)) {\n    New-Item -ItemType Directory -Path $RoleTarget -Force | Out-Null\n    Copy-Item -Path (Join-Path $RoleSource '*') -Destination $RoleTarget -Recurse -Force\n  }\n} catch {\n  Write-Warning \"seed default companion role failed: $($_.Exception.Message)\"\n}\n\n& (Join-Path $Release 'python\\python.exe') -X utf8 -m len_bot.next.launcher $PSScriptRoot\nexit $LASTEXITCODE\n",
+    "note": "",
+    "backup": "run.ps1.bak-companion-seed-20261114-125520"
+  },
+  {
+    "id": "31-catchup-note",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/chat/attention.py",
+    "marker": "31-catchup-note",
+    "old": "        note = (f\"{since} 起 Bot 停机或模型请求失败，期间的消息当时没有回应；按各条原时间理解，不逐条补回，\"\n                \"@ 你的可以按原时间简短回应\")\n",
+    "new": "        note = (f\"{since} 起这段时间一直没有开口，期间的消息现在一并送到；按各条原时间理解，不逐条补回，\"\n                \"@ 你的可以按原时间简短回应；这段时间发生了什么不用解释，照常接话\")  # [local patch] 31-catchup-note\n"
+  },
+  {
+    "id": "33-autostart",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/panel/routes/settings.py",
+    "marker": "33-autostart",
+    "old": "class RetentionChange(BaseModel):",
+    "new": "# [local patch] 33-autostart\n_AUTOSTART_KEY = r'Software\\Microsoft\\Windows\\CurrentVersion\\Run'\n_AUTOSTART_NAME = 'LenBot'\n\n\nclass AutostartChange(BaseModel):\n    model_config = STRICT\n    enabled: bool\n\n\nclass RetentionChange(BaseModel):"
+  },
+  {
+    "id": "34-autostart-helpers",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/panel/routes/settings.py",
+    "marker": "34-autostart",
+    "old": "    def learning_snapshot(scene: str, snapshot: dict) -> dict:",
+    "new": "    # [local patch] 34-autostart-helpers：读写当前用户的开机启动项\n    def _autostart_exe() -> Path | None:\n        bases: list[Path] = []\n        for anchor in (root, Path(__file__).resolve()):\n            bases.append(anchor)\n            bases.extend(list(anchor.parents)[:10])\n        for base in bases:\n            for rel in ('LenBotDesktop/LenBot.exe', 'LenBot.exe'):\n                candidate = base / rel\n                if candidate.is_file():\n                    return candidate\n        return None\n\n    def _autostart_read() -> dict:\n        import sys as _sys\n        exe = _autostart_exe()\n        state = {'supported': _sys.platform == 'win32', 'enabled': False,\n                 'target': str(exe) if exe else None}\n        if not state['supported']:\n            return state\n        import winreg\n        try:\n            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _AUTOSTART_KEY) as key:\n                value, _ = winreg.QueryValueEx(key, _AUTOSTART_NAME)\n            state['enabled'] = 'LenBot.exe' in str(value)\n        except OSError:\n            state['enabled'] = False\n        return state\n\n    def _autostart_write(enabled: bool) -> dict:\n        import sys as _sys\n        if _sys.platform != 'win32':\n            raise HTTPException(400, '开机自启动只支持 Windows')\n        import winreg\n        if enabled:\n            exe = _autostart_exe()\n            if exe is None:\n                raise HTTPException(409, '找不到 LenBotDesktop\\\\LenBot.exe，请确认桌面程序还在原位置')\n            with winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, _AUTOSTART_KEY, 0,\n                                    winreg.KEY_SET_VALUE) as key:\n                winreg.SetValueEx(key, _AUTOSTART_NAME, 0, winreg.REG_SZ,\n                                  '\"' + str(exe) + '\" --start-all')\n        else:\n            try:\n                with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _AUTOSTART_KEY, 0,\n                                    winreg.KEY_SET_VALUE) as key:\n                    winreg.DeleteValue(key, _AUTOSTART_NAME)\n            except OSError:\n                pass\n        return _autostart_read()\n\n    def learning_snapshot(scene: str, snapshot: dict) -> dict:"
+  },
+  {
+    "id": "35-autostart-routes",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/panel/routes/settings.py",
+    "marker": "35-autostart",
+    "old": "    @app.get(\"/api/host/settings\", response_model=responses.SettingsSnapshot, response_model_exclude_unset=True)",
+    "new": "    # [local patch] 35-autostart-routes\n    @app.get(\"/api/host/autostart\")\n    async def autostart_state(_: str = Depends(user)):\n        return _autostart_read()\n\n    @app.put(\"/api/host/autostart\")\n    async def autostart_change(request: Request, _: str = Depends(user)):\n        body = await _body(request, AutostartChange)\n        async with write_lock:\n            return await asyncio.to_thread(_autostart_write, body.enabled)\n\n    @app.get(\"/api/host/settings\", response_model=responses.SettingsSnapshot, response_model_exclude_unset=True)"
+  },
+  {
+    "id": "40-proactive-private-scene",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/config.py",
+    "marker": "40-proactive-private",
+    "old": "            if settings.proactive is not None and scene.split(\":\", 2)[1] != \"group\":\n                raise ValueError(f\"scenes.{scene}.proactive is only supported for group scenes\")",
+    "new": "            # [local patch] 40-proactive-private: the wake logic is scene-agnostic; a private scene is\n            # allowed to wake its own chat in the same way a group does.\n            if settings.proactive is not None and scene.split(\":\", 2)[1] not in (\"group\", \"private\"):\n                raise ValueError(f\"scenes.{scene}.proactive is only supported for group and private scenes\")",
+    "note": "允许 private 场景配置 proactive；官方只放开了 group。",
+    "backup": ""
+  },
+  {
+    "id": "41-proactive-private-effects",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/config.py",
+    "marker": "40-proactive-private: a private wake",
+    "old": "            if settings.proactive is not None and (settings.learning is None or not settings.learning.reply_effects):\n                raise ValueError(f\"scenes.{scene}.proactive requires learning.reply_effects to judge actual responses\")",
+    "new": "            # [local patch] 40-proactive-private: a private wake has no reply_effects samples, so its\n            # outcome settles as \"unobserved\" instead of \"ignored\"; keep the dependency group-only.\n            if (settings.proactive is not None and scene.split(\":\", 2)[1] == \"group\"\n                    and (settings.learning is None or not settings.learning.reply_effects)):\n                raise ValueError(f\"scenes.{scene}.proactive requires learning.reply_effects to judge actual responses\")",
+    "note": "私聊的主动唤醒没有 reply_effects 样本，结果记为 unobserved，因此把这条依赖限回群里。",
+    "backup": "",
+    "requires": [
+      "40-proactive-private-scene"
+    ]
+  },
+  {
+    "id": "42-proactive-wording",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/prompts/next_proactive.md",
+    "marker": "[这里安静了 $idle]",
+    "old": "[群里安静了 $idle]\n本群最后一条消息在 $since，现在是 $now（$timezone）。这是今天唯一一次主动叫醒你。\n可以聊聊本群常聊的话题、最近的事或你自己想分享的东西，像群友随口一提那样开个头；不想说也可以直接结束本轮。\n",
+    "new": "[这里安静了 $idle]\n最后一条消息在 $since，现在是 $now（$timezone）。这是今天唯一一次主动叫醒你。\n可以聊聊这里常聊的话题、最近的事或你自己想分享的东西，随口一提那样开个头；不想说也可以直接结束本轮。\n",
+    "note": "把主动唤醒的提示词从「本群／群友」改成中性说法，私聊和群都能用。",
+    "backup": "",
+    "requires": [
+      "40-proactive-private-scene"
+    ]
+  },
+  {
+    "id": "45-plugin-data-missing",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/plugins/manager.py",
+    "marker": "45-plugin-data-missing",
+    "old": "        await asyncio.to_thread(shutil.rmtree, directory)\n        return str(directory)",
+    "new": "        # [local patch] 45-plugin-data-missing: a plugin that never wrote data has no directory;\n        # removing it is a no-op rather than a FileNotFoundError.\n        if directory.is_dir():\n            await asyncio.to_thread(shutil.rmtree, directory)\n        return str(directory)",
+    "note": "删除插件数据时，目录不存在按无操作处理，不再抛 FileNotFoundError 中断。",
+    "backup": ""
+  },
+  {
+    "id": "48-proactive-default-window-model",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/configuration/chat.py",
+    "marker": "start: WallTime = WallTime(12, 0)",
+    "old": "    start: WallTime = WallTime(10, 0)\n    end: WallTime = WallTime(22, 0)",
+    "new": "    start: WallTime = WallTime(12, 0)\n    end: WallTime = WallTime(23, 30)"
+  },
+  {
+    "id": "52-settings-proactive-private-nav",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/web/static/dist/assets/SettingsTab-CHHckw_d.js",
+    "marker": "__lbP",
+    "old": "const g=$(()=>s.scene.split(\":\")[1]===\"group\");",
+    "new": "const g=$(()=>s.scene.split(\":\")[1]===\"group\");const __lbP=$(()=>s.scene.split(\":\")[1]===\"private\");"
+  },
+  {
+    "id": "53-settings-proactive-private-render",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/web/static/dist/assets/SettingsTab-CHHckw_d.js",
+    "marker": "__lbP.value",
+    "old": "...g.value?[\"speech\",\"proactive\"]:[]",
+    "new": "...g.value?[\"speech\",\"proactive\"]:[...__lbP.value?[\"proactive\"]:[]]",
+    "requires": [
+      "52-settings-proactive-private-nav"
+    ]
+  },
+  {
+    "id": "54-settings-proactive-window",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/web/static/dist/assets/SettingsTab-CHHckw_d.js",
+    "marker": "start:\"12:00\",end:\"23:30\"",
+    "old": "{idle_seconds:10800,start:\"10:00\",end:\"22:00\"}",
+    "new": "{idle_seconds:10800,start:\"12:00\",end:\"23:30\"}"
+  },
+  {
+    "id": "55-tasks-proactive-private-tab",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/web/static/dist/assets/TasksTab-DsGSnoJA.js",
+    "marker": "split(\":\",3)[1]===\"private\"",
+    "old": "\"tasks\",\"schedules\",...c.value?[\"proactive\"]:[],\"resources\"",
+    "new": "\"tasks\",\"schedules\",...c.value?[\"proactive\"]:[...n.scene.split(\":\",3)[1]===\"private\"?[\"proactive\"]:[]],\"resources\""
+  },
+  {
+    "id": "56-autostart-ui-state",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/web/static/dist/assets/SystemView-CHtuxfmg.js",
+    "marker": "__lbAuto",
+    "old": "const A=Q,{t:u}=Te(),k=Z(\"\"),d=Z(\"\"),x=Z(!1),h=He({",
+    "new": "const A=Q,{t:u}=Te(),k=Z(\"\"),d=Z(\"\"),x=Z(!1),__lbAuto=Z(!1),__lbMsg=Z(\"\"),__lbInit=function(){fetch(\"/api/host/autostart\").then(function(r){return r.json()}).then(function(v){__lbAuto.value=!!(v&&v.enabled)}).catch(function(){})},__lbPut=function(v){var o=__lbAuto.value;__lbAuto.value=v;__lbMsg.value=\"\";fetch(\"/api/host/autostart\",{method:\"PUT\",headers:{\"content-type\":\"application/json\"},body:JSON.stringify({enabled:v})}).then(function(r){if(!r.ok){__lbAuto.value=o;__lbMsg.value=\"保存失败 HTTP \"+r.status}}).catch(function(){__lbAuto.value=o;__lbMsg.value=\"网络错误\"})},h=He({"
+  },
+  {
+    "id": "57-autostart-ui-field",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/web/static/dist/assets/SystemView-CHtuxfmg.js",
+    "marker": "\"开机自启动\"",
+    "old": "a(F,{label:e(u)(\"system.account.https\"),inline:\"\",wide:\"\"},{default:p(()=>[a(Ue,{modelValue:e(U).cookie_secure,\"onUpdate:modelValue\":i[6]||(i[6]=m=>e(U).cookie_secure=m)},null,8,[\"modelValue\"])]),_:1},8,[\"label\"])",
+    "new": "a(F,{label:e(u)(\"system.account.https\"),inline:\"\",wide:\"\"},{default:p(()=>[a(Ue,{modelValue:e(U).cookie_secure,\"onUpdate:modelValue\":i[6]||(i[6]=m=>e(U).cookie_secure=m)},null,8,[\"modelValue\"])]),_:1},8,[\"label\"]),a(F,{label:\"开机自启动\",inline:\"\",wide:\"\",info:__lbMsg.value},{default:p(()=>[a(Ue,{modelValue:__lbAuto.value,\"onUpdate:modelValue\":__lbPut,onVnodeMounted:__lbInit},null,8,[\"modelValue\"])]),_:1},8,[\"label\",\"info\"])",
+    "requires": [
+      "56-autostart-ui-state"
+    ]
+  },
+  {
+    "id": "58-policy-block-status",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/chat/session.py",
+    "marker": "delivery_status == \"policy_blocked\"",
+    "old": "                                        elif delivery_status in {\"held\", \"partial_held\"}:\n                                            interrupted = True\n",
+    "new": "                                        elif delivery_status == \"policy_blocked\":\n                                            # [local patch] 58: 本地用词规则拦下的一条，不是发送失败。\n                                            failed_sends = 0\n                                        elif delivery_status in {\"held\", \"partial_held\"}:\n                                            interrupted = True\n"
+  },
+  {
+    "id": "25-name-guard",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/chat/expression.py",
+    "marker": "25-name-guard",
+    "old": "    async def deliver_expression(self, call_id: str, expression: Expression, *,\n                                 turn_id: str, channels: set[str], tool_name: str = \"say\",\n                                 hold_expression: HoldExpression | None = None) -> tuple[str, str]:\n        parts = ([expression.message] if expression.sticker is not None else\n                 split_expression(expression.message, self.config.text_delivery.max_chars))\n        entry_seq = await self.store.call(\n",
+    "new": "    async def deliver_expression(self, call_id: str, expression: Expression, *,\n                                 turn_id: str, channels: set[str], tool_name: str = \"say\",\n                                 hold_expression: HoldExpression | None = None) -> tuple[str, str]:\n        parts = ([expression.message] if expression.sticker is not None else\n                 split_expression(expression.message, self.config.text_delivery.max_chars))\n        # [local patch] 25-name-guard: 命中禁用名字就整条不发，也不留下表达记录，等于没听见。\n        _banned = (\"珈乐\", \"珈 乐\", \"伽乐\", \"珈樂\", \"加乐\", \"嘉乐\", \"佳乐\", \"jia le\", \"jiale\", \"carol\")\n        _said = \"\".join(segment.data.get(\"text\", \"\") for part in parts\n                        for segment in part.segments if segment.type == \"text\").casefold()\n        if any(_word in _said for _word in _banned):\n            return \"此条未发送：触发本地用词规则。可以不点名地重说，或跳过这条。\", \"policy_blocked\"\n        entry_seq = await self.store.call(\n",
+    "note": "整条不发并返回独立规则拦截状态，不保存被拦的文本为实际发言。",
+    "backup": "",
+    "requires": [
+      "58-policy-block-status"
+    ]
+  },
+  {
+    "id": "59-settings-freq-slider-logic",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/web/static/dist/assets/SettingsTab-CHHckw_d.js",
+    "marker": "__lbScale",
+    "old": "__name:\"ParticipationSection\",setup(f){const{t}=J(),s=ue(),",
+    "new": "__name:\"ParticipationSection\",setup(f){const{t}=J(),s=ue(),__lbA=[[0,21600,300,2],[6,5400,300,2],[15,1800,180,3],[30,600,120,3],[100,60,30,4]],__lbPick=(x,j,log)=>{let i=0;while(i<__lbA.length-2&&x>__lbA[i+1][0])i++;const p=__lbA[i],q=__lbA[i+1],r=(x-p[0])/(q[0]-p[0]);return log?Math.exp(Math.log(p[j])+(Math.log(q[j])-Math.log(p[j]))*r):p[j]+(q[j]-p[j])*r},__lbAt=x=>{const m=__lbPick(x,1,!0);return{ambient_min_interval_seconds:Math.round(m),ambient_max_interval_seconds:Math.round(4*m),speech_interval_seconds:Math.round(__lbPick(x,2,!1)),speech_burst:Math.round(__lbPick(x,3,!1))}},__lbScale=Array.from({length:101},(_,i)=>__lbAt(i)),__lbFmt=x=>x>=3600&&x%3600===0?x/3600+\" 小时\":x>=60&&x%60===0?x/60+\" 分钟\":x+\" 秒\",__lbSet=x=>{const p=__lbScale[Number(x)];if(p)Object.assign(s.draft.scene.attention,p)},__lbCur=$(()=>{const p=s.draft.scene.attention,k=\"ambient_min_interval_seconds\",x=__lbScale.findIndex(a=>Object.entries(a).every(([key,val])=>p[key]===val));let near=0;if(Number.isFinite(p[k])&&p[k]>0){for(let i=1;i<__lbScale.length;i++)if(Math.abs(Math.log(__lbScale[i][k]/p[k]))<Math.abs(Math.log(__lbScale[near][k]/p[k])))near=i}return{exact:x>=0,value:x>=0?x:near,detail:\"主动接话基础间隔 \"+__lbFmt(p[k])+\"，上限 \"+__lbFmt(p.ambient_max_interval_seconds)+\"；最多连发 \"+p.speech_burst+\" 条，之后每条间隔 \"+__lbFmt(p.speech_interval_seconds)}}),"
+  },
+  {
+    "id": "60-settings-freq-slider-ui",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/web/static/dist/assets/SettingsTab-CHHckw_d.js",
+    "marker": "参与频率 · 自定义滑动",
+    "old": "o(ms,{modelValue:_.value,\"onUpdate:modelValue\":b[0]||(b[0]=U=>_.value=U)},null,8,[\"modelValue\"]),",
+    "new": "o(ms,{modelValue:_.value,\"onUpdate:modelValue\":b[0]||(b[0]=U=>_.value=U)},null,8,[\"modelValue\"]),e(s).draft.scene.attention.only_direct?L(\"\",!0):o(E,{key:\"freq\",label:\"参与频率 · 自定义滑动\",wide:\"\"},{default:p(()=>[P(\"div\",{class:\"mt-3 space-y-2 rounded-md border border-line p-3\"},[P(\"div\",{class:\"flex flex-wrap items-center justify-between gap-2 text-xs\"},[P(\"span\",{class:\"font-medium text-ink\"},\"参与频率 · 滑动微调\"),P(\"span\",{class:\"tabular-nums text-muted\",\"aria-live\":\"polite\"},__lbCur.value.exact?__lbCur.value.value+\"%\":\"自定义\")]),P(\"input\",{type:\"range\",min:0,max:100,step:1,value:__lbCur.value.value,onInput:ev=>__lbSet(ev.currentTarget.value),class:\"w-full cursor-pointer\",style:\"accent-color:#2563eb\",\"aria-label\":\"群内发言频率\",\"aria-valuetext\":__lbCur.value.exact?__lbCur.value.value+\"%\":\"自定义设置\"}),P(\"div\",{class:\"text-xs text-muted\"},__lbCur.value.detail),P(\"div\",{class:\"flex flex-wrap items-center gap-2 text-xs text-muted\"},[[6,\"安静\"],[15,\"适中\"],[30,\"活跃\"]].map(([lv,label])=>P(\"button\",{type:\"button\",key:lv,class:\"rounded-md border border-line px-2 py-0.5 hover:text-ink\",onClick:()=>__lbSet(lv)},label+\" \"+lv+\"%\"))),P(\"div\",{class:\"text-xs text-muted\"},\"仅调整发言节奏，不改变随机接话概率。拖动后点页面底部保存。\")])]),_:1},8,[\"label\"]),",
+    "requires": [
+      "59-settings-freq-slider-logic"
+    ]
+  },
+  {
+    "id": "61-summary-extra-keys",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/memory/summary.py",
+    "marker": "61-summary-extra-keys",
+    "old": "        if not isinstance(value, dict) or set(value) != {\"abstract\", \"overview\"}:\n            raise ValueError(\"expected an object containing only abstract and overview\")\n",
+    "new": "        # [local patch] 61-summary-extra-keys: 模型偶尔多带一个字段（例如 \"overview_note\": null），\n        # 只要必需的 abstract/overview 都在就照常采用，不要整条作废。\n        if not isinstance(value, dict) or not {\"abstract\", \"overview\"} <= set(value):\n            raise ValueError(\"expected an object containing abstract and overview\")\n"
+  },
+  {
+    "id": "62-sticker-nudge-floor",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/chat/context.py",
+    "marker": "[local patch] 62: 固定重复习惯的最少样本",
+    "old": "    expressions = _expressions(entries)\n    if len(expressions) < 5:\n        return None\n",
+    "new": "    expressions = _expressions(entries)\n    # [local patch] 62: 固定重复习惯的最少样本，独立于纯文字贴图提醒。\n    if len(expressions) < 3:\n        return None\n",
+    "note": "重复习惯固定最少 3 条，不受独立的纯文字贴图提醒阈值影响。"
+  },
+  {
+    "id": "64-private-proactive-section-mount",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/web/static/dist/assets/SettingsTab-CHHckw_d.js",
+    "marker": "(g.value||__lbP.value)?(c(),P(nt,{key:1})):O(\"\",!0)",
+    "old": "g.value?(c(),B(at,{key:1})):L(\"\",!0)",
+    "new": "(g.value||__lbP.value)?(c(),B(at,{key:1})):L(\"\",!0)",
+    "note": "私聊和群聊都渲染主动发言设置区块；不是只显示导航。",
+    "requires": [
+      "53-settings-proactive-private-render"
+    ]
+  },
+  {
+    "id": "65-private-proactive-live-apply",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/runtime/settings.py",
+    "marker": "[local patch] 65: private proactive",
+    "old": "            if desired.proactive is None or learning is not None and learning.reply_effects:\n                current.proactive = deepcopy(desired.proactive)\n",
+    "new": "            # [local patch] 65: private proactive has no reply-effect learning requirement.\n            if (desired.proactive is None or scene.split(\":\", 2)[1] == \"private\"\n                    or (learning is not None and learning.reply_effects)):\n                current.proactive = deepcopy(desired.proactive)\n",
+    "note": "保存后立即更新私聊主动发言的开关和参数；群聊仍要求回复效果统计。",
+    "requires": [
+      "41-proactive-private-effects"
+    ]
+  },
+  {
+    "id": "66-confirmed-outbound-messages",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/storage/store.py",
+    "marker": "def recent_confirmed_outbound(",
+    "old": "    def ordered_messages(self, scene: str, ids: Sequence[str]) -> list[ChatMessage]:\n",
+    "new": "    def recent_confirmed_outbound(self, scene: str, limit: int) -> list[ChatMessage]:\n        \"\"\"Newest own messages with confirmed delivery; attempts and simulation do not count.\"\"\"\n        rows = self.db.execute(\n            \"SELECT body FROM messages WHERE scene=? \"\n            \"AND json_extract(body,'$.is_self')=1 \"\n            \"AND json_extract(body,'$.send_status')='sent' ORDER BY seq DESC LIMIT ?\",\n            (scene, limit),\n        )\n        return [decode_message(row[0]) for row in rows]\n\n    def ordered_messages(self, scene: str, ids: Sequence[str]) -> list[ChatMessage]:\n",
+    "note": "只读取本场景确认发送的消息，先筛选再取最近几条，不依赖模型工具调用历史。"
+  },
+  {
+    "id": "67-retire-attempt-based-sticker-nudge",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/chat/context.py",
+    "marker": "    if with_sticker >= 6:\n        habits.append(f\"{with_sticker} 次附带了表情包（可以适当纯文字回复，不必每句都配图）\")\n    if not habits:\n",
+    "old": "    if with_sticker >= 6:\n        habits.append(f\"{with_sticker} 次附带了表情包（可以适当纯文字回复，不必每句都配图）\")\n    elif has_stickers and with_sticker == 0 and len(expressions) >= 6:\n        habits.append(\n            f\"连续 {len(expressions)} 次都是纯文字、没发表情包\"\n            \"（遇到打趣、接梗、打招呼或明显情绪反应时，可以顺手在 say 里配张 sticker 或直接用 react 发图）\"\n        )\n    if not habits:\n",
+    "new": "    if with_sticker >= 6:\n        habits.append(f\"{with_sticker} 次附带了表情包（可以适当纯文字回复，不必每句都配图）\")\n    if not habits:\n",
+    "note": "移除按整段模型工具调用判断纯文字的提示；不影响重复用图等提示。"
+  },
+  {
+    "id": "68-sticker-nudge-confirmed-text-streak",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/chat/context.py",
+    "marker": "[local patch] 70-local-sticker-nudge: 连续纯文字",
+    "old": "        references.append(recent_habits(entries, heard, has_stickers=has_stickers))\n        references.append(reply_feedback(self.config, self.store))\n",
+    "new": "        references.append(recent_habits(entries, heard, has_stickers=has_stickers))\n        if has_stickers:\n            streak = sticker_nudge_streak(self.config)\n            # [local patch] 70-local-sticker-nudge: 连续纯文字的条数取自 local-settings.json。\n            recent = self.store.recent_confirmed_outbound(self.config.scene, limit=streak)\n            if len(recent) == streak and all(\n                all(segment.type in {\"text\", \"at\", \"reply\"} for segment in message.segments)\n                and plain_text(message).strip() for message in recent\n            ):\n                references.append(f\"最近 {streak} 条确认发出的消息都是纯文字。遇到打趣、接梗、打招呼或明显情绪反应时，\"\n                                  \"可以顺手在 say 里配张 sticker，或用 react 发表情；不必硬配。\")\n        references.append(reply_feedback(self.config, self.store))\n",
+    "note": "连续纯文字只看确认发送的消息；阈值只用于这条提醒，不控制重复习惯。",
+    "requires": [
+      "66-confirmed-outbound-messages",
+      "67-retire-attempt-based-sticker-nudge"
+    ]
+  },
+  {
+    "id": "64-plugin-audio",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/plugin.py",
+    "marker": "[local patch] 64-plugin-audio",
+    "old": "Content = Text | Image | Mention",
+    "new": "@dataclass(frozen=True)\nclass Audio:\n    \"\"\"A local audio file sent as a voice message. [local patch] 64-plugin-audio\"\"\"\n    path: str\n    description: str = \"\"\n\n\nContent = Text | Image | Mention | Audio"
+  },
+  {
+    "id": "65-plugin-audio-delivery",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/plugins/delivery.py",
+    "marker": "[local patch] 65-plugin-audio-delivery",
+    "old": "from ...plugin import Content, Image, Mention, Text",
+    "new": "from ...plugin import Audio, Content, Image, Mention, Text"
+  },
+  {
+    "id": "66-plugin-audio-delivery",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/plugins/delivery.py",
+    "marker": "[local patch] 65-plugin-audio-delivery",
+    "old": "        elif isinstance(item, Image):",
+    "new": "        elif isinstance(item, Audio):\n            # [local patch] 65-plugin-audio-delivery\n            from pathlib import Path as _Path\n            audio_path = _Path(item.path)\n            if not audio_path.is_absolute():\n                raise ValueError(f\"插件音频须为绝对路径：{item.path!r}\")\n            if not audio_path.is_file():\n                raise ValueError(f\"插件音频文件不存在：{item.path!r}\")\n            flush()\n            segments.append(Segment(\"audio\", {\"file\": audio_path.as_posix()}))\n            flush()\n        elif isinstance(item, Image):"
+  },
+  {
+    "id": "69-onebot-audio-send-whitelist",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/platform/onebot.py",
+    "marker": "if segment.type not in {\"text\", \"mention\", \"reply\", \"image\", \"audio\"}",
+    "old": "                       if segment.type not in {\"text\", \"mention\", \"reply\", \"image\"}]",
+    "new": "                       if segment.type not in {\"text\", \"mention\", \"reply\", \"image\", \"audio\"}]",
+    "note": "官方 send_message 白名单只有 text/mention/reply/image，插件语音被拒成 Unsupported OneBot message segments: ['audio']；wire 层本来就有 audio→record 映射，放开白名单即可。"
+  },
+  {
+    "id": "70-local-sticker-nudge",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/chat/context.py",
+    "marker": "def sticker_nudge_streak(config) -> int:",
+    "old": "def recent_habits(entries: Sequence[tuple[int, dict]], heard: Sequence[str] = (), *,\n                  has_stickers: bool = False) -> str | None:",
+    "new": "# [local patch] 70-local-sticker-nudge: 只调整连续纯文字后建议配表情的阈值。\n# 合法整数限制到 1–20；缺失、错误或非整数设置使用默认 3。\ndef sticker_nudge_streak(config) -> int:\n    root = getattr(config, \"_instance_root\", None)\n    if root is None:\n        return 3\n    try:\n        raw = json.loads((Path(root) / \"local-settings.json\").read_text(encoding=\"utf-8\"))\n    except (OSError, ValueError):\n        return 3\n    value = raw.get(\"sticker_nudge_streak\", 3) if isinstance(raw, dict) else 3\n    return max(1, min(value, 20)) if type(value) is int else 3\n\n\ndef recent_habits(entries: Sequence[tuple[int, dict]], heard: Sequence[str] = (), *,\n                  has_stickers: bool = False) -> str | None:",
+    "note": "local-settings.json 的整数阈值只控制已确认的连续纯文字提醒：1–20 夹取，缺失或非法回落 3。"
+  },
+  {
+    "id": "71-voice-claim-before-wake",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/next/plugins/host.py",
+    "marker": "[local patch] 71: voice checks real @ segments",
+    "old": "        # Body mentions are accepted only by commands that explicitly opt in.\n        pieces = []\n        started = mentions = False\n        for segment in message.segments:\n            if segment.type == \"text\":\n                pieces.append(segment.data[\"text\"])\n                started = started or bool(segment.data[\"text\"].strip())\n            elif not started and (segment.type == \"reply\" or\n                                  (segment.type == \"mention\" and str(segment.data[\"user\"]) == message.bot_id)):\n                continue\n            elif started and segment.type == \"mention\":\n                mentions = True\n                pieces.append(\" \")\n            else:\n                return None\n        text = \"\".join(pieces).strip()\n        eligible = {name: item for name, item in self.plugins.items()\n                    if item.status in {\"loaded\", \"running\"} and message.scene in item.scenes}\n        match = re.fullmatch(r\"/(\\S+)(?:\\s+(.*))?\", text, re.DOTALL)\n        if match is not None and (record := eligible.get(self.commands.get(match[1]))) is not None:\n            if mentions and match[1] not in record.mention_commands:\n                return None\n            return Matched(record, f\"命令 /{match[1]}\", record.commands[match[1]][1], ((match[2] or \"\").strip(),))\n        if mentions:\n            return None\n        if (record := eligible.get(self.fullmatches.get(text))) is not None:\n            return Matched(record, f\"全文 {text!r}\", record.fullmatches[text][1])\n        patterns = sorted(((record, item) for record in eligible.values() for item in record.patterns),\n                          key=lambda pair: (-pair[1].priority, pair[0].name, pair[1].method))\n        for record, item in patterns:\n            if (match := item.expression.fullmatch(text)) is not None:\n                return Matched(record, f\"正则 {item.expression.pattern!r}\", item.method, (match,))\n        return None\n",
+    "new": "        pieces = []\n        started = mentions = addressed = other_mentions = False\n        for segment in message.segments:\n            if segment.type == \"text\":\n                pieces.append(segment.data[\"text\"])\n                started = started or bool(segment.data[\"text\"].strip())\n            elif not started and segment.type == \"reply\":\n                continue\n            elif segment.type == \"mention\":\n                is_bot = str(segment.data[\"user\"]) == message.bot_id\n                addressed = addressed or is_bot\n                if not started:\n                    if not is_bot:\n                        return None\n                    continue\n                mentions = True\n                other_mentions = other_mentions or not is_bot\n                pieces.append(\" \")\n            else:\n                return None\n        text = \"\".join(pieces).strip()\n        eligible = {name: item for name, item in self.plugins.items()\n                    if item.status in {\"loaded\", \"running\"} and message.scene in item.scenes}\n        match = re.fullmatch(r\"/(\\S+)(?:\\s+(.*))?\", text, re.DOTALL)\n        if match is not None and (record := eligible.get(self.commands.get(match[1]))) is not None:\n            if mentions and match[1] not in record.mention_commands:\n                return None\n            return Matched(record, f\"命令 /{match[1]}\", record.commands[match[1]][1], ((match[2] or \"\").strip(),))\n        if not mentions and (record := eligible.get(self.fullmatches.get(text))) is not None:\n            return Matched(record, f\"全文 {text!r}\", record.fullmatches[text][1])\n        patterns = sorted(((record, item) for record in eligible.values() for item in record.patterns),\n                          key=lambda pair: (-pair[1].priority, pair[0].name, pair[1].method))\n        for record, item in patterns:\n            # [local patch] 71: voice checks real @ segments before it can claim a message.\n            # Other regexes retain the default policy against in-body mentions.\n            if record.name == \"voice\" and item.method == \"on_asked\":\n                if other_mentions or record.context is None:\n                    continue\n                if (message.scene.split(\":\", 2)[1] == \"group\"\n                        and record.context.config.get(\"require_mention\", True) and not addressed):\n                    continue\n            elif mentions:\n                continue\n            if (match := item.expression.fullmatch(text)) is not None:\n                return Matched(record, f\"正则 {item.expression.pattern!r}\", item.method, (match,))\n        return None\n",
+    "note": "仅本机 voice.on_asked 在接管前检查实际点名及开关；允许正文中的机器人 @，不放宽其他插件。"
+  },
+  {
+    "id": "72-scene-picker-multi-default",
+    "path": "releases/0.4.0/python/Lib/site-packages/len_bot/web/static/dist/assets/ScenePicker.vue_vue_type_script_setup_true_lang-BkHkXan6.js",
+    "marker": "[local patch] 72: default to multi-select",
+    "old": "single:{type:Boolean},multiple:{type:Boolean},id:{}",
+    "new": "single:{type:Boolean},multiple:{type:Boolean,default:void 0/* [local patch] 72: default to multi-select */},id:{}",
+    "note": "Vue 会把省略且无默认值的 Boolean 属性转换为 false；让省略的 multiple 保持 undefined，scene_list 默认多选，同时保留显式单选。"
+  }
+]

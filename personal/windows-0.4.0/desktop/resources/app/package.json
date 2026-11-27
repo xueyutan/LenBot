@@ -1,0 +1,9 @@
+{
+  "name": "lenbot-console",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LenBot panel desktop client (local Electron app)",
+  "main": "main.js",
+  "author": "local",
+  "license": "MIT"
+}

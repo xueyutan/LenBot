@@ -1,0 +1,177 @@
+name = "bilibili"
+version = "1.5.1"
+interface = 1
+permissions = ["send", "events", "configure", "quiet"]
+requires_lenbot = ">=0.2.4,<1"
+requires_python = ">=3.13"
+platforms = ["linux", "darwin", "win32"]
+reload = "plugin"
+authors = ["LEN5010"]
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/lendevs/lenbot-plugin-bilibili"
+description = "搜索视频和 UP 主、查看视频与评论；主人扫码登录后可读字幕与动态，在聊天中管理本群的开播提醒、动态、视频和评论推送。"
+dependencies = ["bilibili-api-python==17.4.1", "qrcode>=8.2,<9"]
+
+[model]
+instructions = "prompts/tools.md"
+
+[config.rooms]
+label = "直播监测的直播间"
+type = "object_list"
+default = []
+description = "只有在启用了本插件的群里才会采样和提醒。"
+
+[config.rooms.fields.uid]
+type = "integer"
+label = "主播 UID"
+description = "主播的 B 站账号 UID"
+minimum = 1
+
+[config.rooms.fields.room_id]
+type = "integer"
+label = "房间号"
+description = "直播间房间号，短号也可以"
+minimum = 1
+
+[config.rooms.fields.name]
+type = "string"
+label = "名称"
+description = "提醒消息里用的名字"
+
+[config.rooms.fields.scenes]
+type = "scene_list"
+label = "提醒的群"
+description = "开播状态变化时通知这些群"
+default = []
+
+[config.rooms.fields.at_all]
+type = "boolean"
+label = "开播时 @全体成员"
+description = "QQ 群需要机器人是管理员且还有 @全体 次数，飞书群需要群设置允许，发送失败会去掉 @全体 再发一次；Telegram 没有全员提醒，只发卡片"
+default = false
+
+[config.rooms.fields.quiet]
+type = "string"
+label = "直播期间"
+description = "直播期间提醒的群里 Bot 是否主动插话，下播后照常聊天"
+default = "off"
+options = [
+  { value = "off", label = "照常聊天" },
+  { value = "allow", label = "不主动插话，被 @ 时回应" },
+  { value = "defer", label = "不主动插话，被 @ 时下播后回应" },
+]
+
+[config.follows]
+label = "关注的 UP 主"
+type = "object_list"
+default = []
+description = "新动态、新视频和 UP 主本人的评论以卡片推送到这些群。需要填写 SESSDATA。"
+
+[config.follows.fields.uid]
+type = "integer"
+label = "UP 主 UID"
+description = "B 站账号 UID"
+minimum = 1
+
+[config.follows.fields.name]
+type = "string"
+label = "备注名"
+description = "面板和查询里显示的名称，卡片使用 B 站上的实际昵称"
+default = ""
+
+[config.follows.fields.scenes]
+type = "scene_list"
+label = "推送的群"
+description = "只有同时启用了本插件的群会收到"
+default = []
+
+[config.follows.fields.dynamic]
+type = "boolean"
+label = "推送动态"
+description = "图文、文字和转发动态"
+default = true
+
+[config.follows.fields.video]
+type = "boolean"
+label = "推送视频"
+description = "新投稿视频"
+default = true
+
+[config.follows.fields.comment]
+type = "boolean"
+label = "推送评论"
+description = "UP 主本人在自己最近的动态和视频下发表或回复的评论"
+default = false
+
+[config.push_poll_seconds]
+label = "动态轮询间隔（秒）"
+group = "关注推送"
+type = "integer"
+default = 300
+minimum = 60
+description = "每个 UP 主两次读取动态之间的间隔；多个 UP 主之间另外错开 20 秒。"
+
+[config.comment_request_seconds]
+label = "评论请求间隔（秒）"
+group = "关注推送"
+type = "number"
+default = 2
+minimum = 0.5
+maximum = 60
+description = "评论接口两次请求之间的最短间隔，所有 UP 主共用。"
+
+[config.live_api_url]
+label = "直播状态接口"
+group = "直播监测"
+type = "url"
+default = "https://api.live.bilibili.com/room/v1/Room/get_info"
+description = "按room_id查询直播状态的接口地址。"
+
+[config.live_source_timezone]
+label = "源站时区"
+group = "直播监测"
+type = "string"
+default = "Asia/Shanghai"
+description = "源站live_time的时区；事件显示转换为各场景时区。"
+
+[config.request_timeout_seconds]
+label = "超时（秒）"
+group = "高级"
+type = "number"
+default = 15
+description = "每次HTTP请求的超时秒数。"
+
+[config.max_subtitle_bytes]
+label = "字幕大小上限（字节）"
+group = "高级"
+type = "integer"
+default = 2000000
+description = "字幕JSON读取字节上限，超限时报错。"
+
+[config.account_read_enabled]
+label = "允许用账号读取"
+group = "B 站账号"
+type = "boolean"
+default = false
+description = "允许主人使用配置的登录态读取评论、字幕和空间动态。"
+
+[config.account_uid]
+label = "账号 UID"
+group = "B 站账号"
+type = "integer"
+default = 0
+description = "B站账号UID；0表示未配置。"
+
+[config.sessdata]
+label = "SESSDATA"
+group = "B 站账号"
+type = "secret"
+default = ""
+description = "主人账号SESSDATA，只发送给固定的B站API。"
+
+[config.buvid3]
+label = "buvid3"
+group = "B 站账号"
+type = "secret"
+default = ""
+description = "搜索用的设备 Cookie，留空时自动获取；填写后使用指定的 buvid3。"

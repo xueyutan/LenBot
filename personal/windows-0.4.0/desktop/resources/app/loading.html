@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; img-src 'self' data:; style-src 'self' 'unsafe-inline'">
+<title>LenBot 控制台</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: radial-gradient(circle at 50% 12%, #fff5f9 0%, #f7f1f5 55%, #f2edf1 100%);
+    color: #3b3038;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-user-select: none; user-select: none;
+  }
+  .card {
+    width: min(600px, calc(100vw - 64px));
+    padding: 36px 42px 30px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, .92);
+    border: 1px solid rgba(214, 106, 140, .16);
+    box-shadow: 0 18px 50px rgba(120, 70, 95, .12);
+    text-align: center;
+  }
+  .logo { width: 68px; height: 68px; border-radius: 17px; display: block; margin: 0 auto 16px; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0 0 6px; letter-spacing: .5px; }
+  .sub { font-size: 13px; color: #8a7a85; margin: 0 0 22px; }
+  .status {
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    font-size: 15px; margin-bottom: 8px; min-height: 24px;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #d9a1b7; flex: none; }
+  .dot.online { background: #4fb488; }
+  .dot.busy { background: #e0ad54; animation: pulse 1.1s ease-in-out infinite; }
+  .dot.small { width: 7px; height: 7px; }
+  @keyframes pulse { 50% { opacity: .35; } }
+  .detail { font-size: 12.5px; color: #9a8b95; min-height: 20px; margin-bottom: 18px; line-height: 1.6; }
+  .services { display: flex; gap: 9px; justify-content: center; flex-wrap: wrap; margin-bottom: 22px; }
+  .svc {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12px; color: #7d6e78;
+    background: #fbf5f8; border: 1px solid #f0e2ea;
+    padding: 7px 12px; border-radius: 999px;
+  }
+  .svc .port { color: #b3a3ad; font-size: 11px; }
+  .svc .state { font-weight: 600; color: #9a8b95; }
+  .svc .state.on { color: #3f9c74; }
+  .buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  button {
+    font: inherit; font-size: 13.5px; padding: 10px 18px; border-radius: 10px;
+    border: 1px solid #e3d2dc; background: #fff; color: #5c4b57; cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+  }
+  button:hover { background: #fdf4f8; transform: translateY(-1px); }
+  button:active { transform: translateY(0); }
+  button:disabled { opacity: .55; cursor: default; transform: none; }
+  button.primary {
+    background: #d66a8c; border-color: #d66a8c; color: #fff;
+    box-shadow: 0 6px 16px rgba(214, 106, 140, .25);
+  }
+  button.primary:hover { background: #c85c7f; }
+  .prefs { margin-top: 20px; font-size: 12.5px; color: #7d6e78; }
+  .prefs label { cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+  .prefs input { accent-color: #d66a8c; cursor: pointer; }
+  .foot {
+    margin-top: 22px; padding-top: 16px; border-top: 1px solid #f0e7ed;
+    font-size: 11.5px; color: #a99aa4; line-height: 1.8;
+  }
+  .error { color: #c0506f; font-size: 12.5px; min-height: 18px; margin-top: 14px; }
+  .cred {
+    display: none; margin-top: 16px; padding: 14px 16px; border-radius: 12px;
+    background: #fff7fb; border: 1px solid #f0d5e1; text-align: left;
+    font-size: 12.5px; color: #6c5563; line-height: 1.9;
+  }
+  .cred b { color: #c0506f; }
+  .cred code {
+    font-family: Consolas, "Courier New", monospace; font-size: 13px;
+    background: #fff; border: 1px solid #ecd9e3; border-radius: 6px;
+    padding: 2px 7px; color: #b23f66; -webkit-user-select: text; user-select: text;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <img class="logo" src="icon.png" alt="LenBot">
+    <h1>LenBot 控制台</h1>
+    <p class="sub">本机面板桌面客户端 · SnowLuma 协议端联动</p>
+
+    <div class="status"><span class="dot" id="dot"></span><span id="statusText">正在连接…</span></div>
+    <div class="detail" id="detail">正在检测本机服务</div>
+
+    <div class="services">
+      <div class="svc"><span class="dot small" id="dotSL"></span>SnowLuma 协议端 <span class="port">3001</span><span class="state" id="slState">检测中</span></div>
+      <div class="svc"><span class="dot small" id="dotPanel"></span>LenBot 面板 <span class="port">8088</span><span class="state" id="panelState">检测中</span></div>
+    </div>
+
+    <div class="buttons">
+      <button class="primary" id="startBtn">一键启动（SnowLuma + LenBot）</button>
+      <button id="retryBtn">重试连接</button>
+      <button id="slLogBtn">协议端日志</button>
+      <button id="logBtn">服务日志</button>
+    </div>
+    <div class="error" id="error"></div>
+
+    <div class="cred" id="credBox">
+      <b>首次登录 SnowLuma WebUI（5099）</b><br>
+      用户名 <code>admin</code>　初始密码 <code id="credPw"></code><br>
+      这串密码由协议端首次启动随机生成，只会在本次启动时显示。
+      登录后请立刻在 WebUI 里改成自己的密码；若本次没改，下次启动会换一串新的。
+    </div>
+
+    <div class="prefs">
+      <label><input type="checkbox" id="autoStart"> 打开软件时自动启动 SnowLuma + LenBot</label>
+    </div>
+
+    <div class="foot">
+      启动顺序：先拉起 SnowLuma（3001），再拉起 LenBot（8088）。<br>
+      第一次使用：软件会自动打开「首次配置」向导（随机端口，不是 8088）。<br>
+      请先到 <b>127.0.0.1:5099</b> 登录 QQ 并添加正向 WebSocket 3001，再在向导里填同一个 token。<br>
+      5099 的首次登录凭据（用户名 admin）会显示在上方的粉色卡片里，登录后请立刻改密。<br>
+      关闭窗口只缩到托盘，服务继续运行；托盘选「退出」会一并结束由本软件启动的服务。
+    </div>
+  </div>
+
+<script>
+  const q = new URLSearchParams(location.search);
+  const status = q.get('status') || 'connecting';
+  const detail = q.get('detail') || '';
+  const dot = document.getElementById('dot');
+  const statusText = document.getElementById('statusText');
+  const detailEl = document.getElementById('detail');
+  const errorEl = document.getElementById('error');
+  const dotSL = document.getElementById('dotSL');
+  const slState = document.getElementById('slState');
+  const dotPanel = document.getElementById('dotPanel');
+  const panelState = document.getElementById('panelState');
+  const startBtn = document.getElementById('startBtn');
+  const retryBtn = document.getElementById('retryBtn');
+  const logBtn = document.getElementById('logBtn');
+  const slLogBtn = document.getElementById('slLogBtn');
+  const autoStart = document.getElementById('autoStart');
+
+  function render(state, text, extra) {
+    dot.className = 'dot' + (state ? ' ' + state : '');
+    statusText.textContent = text;
+    detailEl.textContent = extra || '';
+  }
+
+  function setService(dotEl, labelEl, online) {
+    dotEl.className = 'dot small' + (online ? ' online' : '');
+    labelEl.textContent = online ? '在线' : '未运行';
+    labelEl.className = 'state' + (online ? ' on' : '');
+  }
+
+  function applyServices(data) {
+    if (!data) return;
+    setService(dotSL, slState, !!data.snowluma);
+    setService(dotPanel, panelState, !!data.panel);
+  }
+
+  if (status === 'offline') {
+    render('', '服务未就绪', detail || '点击一键启动，会先拉起协议端再拉起面板。');
+  } else if (status === 'starting') {
+    render('busy', '正在启动服务…', detail || '请稍候。');
+  } else {
+    render('busy', '正在连接…', detail || '正在检测本机服务');
+  }
+
+  window.lenbot.getStatus().then(applyServices).catch(() => {});
+  window.lenbot.onServices(applyServices);
+
+  const credBox = document.getElementById('credBox');
+  const credPw = document.getElementById('credPw');
+  window.lenbot.onWebuiPassword((data) => {
+    if (!data || !data.password) return;
+    credPw.textContent = data.password;
+    credBox.style.display = 'block';
+  });
+
+  window.lenbot.getPrefs().then((prefs) => {
+    autoStart.checked = !!(prefs && prefs.autoStart);
+  }).catch(() => {});
+
+  autoStart.addEventListener('change', () => {
+    window.lenbot.setPrefs({ autoStart: autoStart.checked }).catch(() => {});
+  });
+
+  startBtn.addEventListener('click', async () => {
+    errorEl.textContent = '';
+    startBtn.disabled = true;
+    render('busy', '正在联动启动…', '正在检查 SnowLuma 协议端（3001）…');
+    try {
+      const result = await window.lenbot.startService();
+      if (!result.ok) {
+        errorEl.textContent = '启动失败：' + (result.error || '未知原因');
+        render('', '服务未就绪', '可查看协议端日志排查，或在托盘里单独启停。');
+        startBtn.disabled = false;
+      }
+    } catch (err) {
+      errorEl.textContent = '启动失败：' + (err && err.message ? err.message : String(err));
+      startBtn.disabled = false;
+    }
+  });
+
+  retryBtn.addEventListener('click', () => {
+    errorEl.textContent = '';
+    render('busy', '正在重新连接…', '');
+    window.lenbot.retry().catch(() => {});
+  });
+
+  logBtn.addEventListener('click', () => { window.lenbot.openLog().catch(() => {}); });
+  slLogBtn.addEventListener('click', () => { window.lenbot.openSnowLumaLog().catch(() => {}); });
+
+  window.lenbot.onProgress((data) => {
+    if (data && data.text) detailEl.textContent = data.text;
+  });
+</script>
+</body>
+</html>

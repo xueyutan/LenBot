@@ -1,0 +1,30 @@
+name = "voice"
+title = "语音回应"
+version = "1.0.0"
+interface = 1
+permissions = ["send"]
+requires_lenbot = ">=0.2.4,<1"
+requires_python = ">=3.13"
+platforms = ["linux", "darwin", "win32"]
+reload = "plugin"
+authors = ["lenbot-local"]
+license = "AGPL-3.0-or-later"
+description = "被点名要求说嗨嗨、或要生日祝福时，发一段语音。同一个人每天只回应第一次，之后回一句已经说过了。"
+
+[config.audio_file]
+label = "语音文件"
+type = "string"
+default = "assets/birthday.aac"
+description = "相对插件目录的路径，也可以填绝对路径"
+
+[config.repeat_reply]
+label = "当天重复要求时的回复"
+type = "string"
+default = "已经说过了"
+description = "同一个人当天第二次及以后被点名时，回这一句代替语音"
+
+[config.require_mention]
+label = "只在被 @ 时回应"
+type = "boolean"
+default = true
+description = "打开后，群里必须 @ 她才算；私聊不看这个开关"

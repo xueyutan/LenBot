@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>LenBot 服务控制台</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; display: flex; flex-direction: column;
+    background: #0c0c0c; color: #d2d2d2;
+    font: 12.5px/1.55 "Cascadia Mono", Consolas, "Microsoft YaHei Mono", monospace;
+  }
+  header {
+    flex: none; display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; background: #171717; border-bottom: 1px solid #2a2a2a;
+  }
+  header .title { margin-right: auto; color: #8d8d8d; font-size: 12px; }
+  button {
+    background: #242424; color: #cfcfcf; border: 1px solid #333;
+    border-radius: 6px; padding: 4px 10px; font: inherit; cursor: pointer;
+  }
+  button:hover { background: #2f2f2f; }
+  button.on { background: #3a2a33; border-color: #6b3f52; color: #f2cfdb; }
+  main { flex: 1; overflow: auto; padding: 10px 14px; white-space: pre-wrap; word-break: break-all; }
+  main.empty::before { content: "等待日志…"; color: #565656; }
+</style>
+</head>
+<body>
+<header>
+  <span class="title">服务控制台</span>
+  <button data-view="lenbot" class="on">LenBot</button>
+  <button data-view="snowluma">SnowLuma</button>
+  <button data-view="all">全部</button>
+  <button id="open">打开日志文件</button>
+  <button id="follow" class="on">跟随</button>
+</header>
+<main id="log" class="empty"></main>
+<script>
+  const log = document.getElementById('log');
+  const followButton = document.getElementById('follow');
+  let view = 'lenbot';
+  let follow = true;
+  let latest = { lenbot: '', snowluma: '' };
+
+  function render() {
+    const parts = [];
+    if (view === 'lenbot' || view === 'all') parts.push('===== LenBot =====\n' + (latest.lenbot || ''));
+    if (view === 'snowluma' || view === 'all') parts.push('===== SnowLuma =====\n' + (latest.snowluma || ''));
+    const text = parts.join('\n\n');
+    if (log.textContent === text) return;
+    log.textContent = text;
+    log.classList.toggle('empty', !text.trim());
+    if (follow) log.scrollTop = log.scrollHeight;
+  }
+
+  function setFollow(next) {
+    follow = next;
+    followButton.classList.toggle('on', follow);
+    if (follow) log.scrollTop = log.scrollHeight;
+  }
+
+  document.querySelectorAll('button[data-view]').forEach((button) => {
+    button.addEventListener('click', () => {
+      view = button.dataset.view;
+      document.querySelectorAll('button[data-view]').forEach((other) => {
+        other.classList.toggle('on', other === button);
+      });
+      render();
+    });
+  });
+
+  followButton.addEventListener('click', () => setFollow(!follow));
+  log.addEventListener('scroll', () => {
+    const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 24;
+    if (follow !== atBottom) setFollow(atBottom);
+  });
+
+  function bridge() {
+    const api = window.lenbot;
+    if (!api || typeof api.onConsole !== 'function') {
+      log.textContent = '预加载接口不可用：请重启 LenBot（关闭后重新双击 LenBot.exe）。';
+      log.classList.remove('empty');
+      return null;
+    }
+    return api;
+  }
+
+  const api = bridge();
+  if (api) {
+    api.onConsole((data) => { latest = data; render(); });
+    api.consoleSnapshot().then((data) => { if (data) { latest = data; render(); } }).catch(() => { /* 忽略 */ });
+    document.getElementById('open').addEventListener('click', () => api.openLog());
+  } else {
+    document.getElementById('open').disabled = true;
+  }
+</script>
+</body>
+</html>

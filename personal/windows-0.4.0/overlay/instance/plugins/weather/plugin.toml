@@ -1,0 +1,68 @@
+name = "weather"
+version = "1.0.0"
+interface = 1
+permissions = ["events"]
+requires_lenbot = ">=0.2.4,<1"
+requires_python = ">=3.13"
+platforms = ["linux", "darwin", "win32"]
+reload = "plugin"
+authors = ["lenbot-local"]
+license = "AGPL-3.0-or-later"
+description = "杭州天气：按计划看预报，遇到降雨、高温、低温、大风或骤降温时，把这件事交给对话，由她自己决定要不要提。"
+
+[model]
+instructions = "prompts/tools.md"
+
+[config.place]
+label = "地点"
+type = "string"
+default = "杭州"
+description = "显示用的地名"
+
+[config.latitude]
+label = "纬度"
+type = "number"
+default = 30.2741
+description = "杭州默认 30.2741"
+
+[config.longitude]
+label = "经度"
+type = "number"
+default = 120.1551
+description = "杭州默认 120.1551"
+
+[config.check_times]
+label = "每天检查的时刻"
+type = "string"
+default = "07:30,16:30"
+description = "本机时区的 HH:MM，用英文逗号分隔；留空表示不自动检查"
+
+[config.max_temp]
+label = "高温阈值（℃）"
+type = "number"
+default = 35
+description = "当天最高温到了这个数就算热得异常"
+
+[config.min_temp]
+label = "低温阈值（℃）"
+type = "number"
+default = 0
+description = "当天最低温到这个数或更低就算冷得异常"
+
+[config.rain_probability]
+label = "降水概率阈值（%）"
+type = "integer"
+default = 60
+description = "降水概率达到这个数，或者天况本身是雨雪，就算有雨"
+
+[config.wind_speed]
+label = "风速阈值（m/s）"
+type = "number"
+default = 10.8
+description = "10.8 约等于 6 级风"
+
+[config.temp_swing]
+label = "温度骤变阈值（℃）"
+type = "number"
+default = 10
+description = "相邻两天最高温或最低温相差这么多就算骤变"
