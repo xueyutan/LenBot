@@ -1,0 +1,37 @@
+name: Personal Windows x64
+
+on:
+  push:
+    branches: [fix/unspoken-thought-projection]
+    paths:
+      - 'personal/windows-0.4.0/**'
+      - '.github/workflows/personal-windows.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download official Windows base
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release download v0.4.0 --repo lendevs/LenBot
+          --pattern lenbot-0.4.0-windows-x64.zip --dir "$RUNNER_TEMP"
+      - name: Build and verify patched archive
+        run: >-
+          python3 personal/windows-0.4.0/build.py
+          "$RUNNER_TEMP/lenbot-0.4.0-windows-x64.zip"
+          "$RUNNER_TEMP/lenbot-0.4.0-personal-windows-x64.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lenbot-0.4.0-personal-windows-x64
+          path: ${{ runner.temp }}/lenbot-0.4.0-personal-windows-x64.zip
+          if-no-files-found: error
+          compression-level: 0
